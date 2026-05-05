@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="{{ url_for( 'static', filename='registr.css')}}">
+    <title>Login page</title>
+</head>
+<body>
+    <div class="container" id="container">
+        <div class="form-container sign-up">
+            <form>
+                <h1>Регистрация</h1>
+                <input type="text" placeholder="Name">
+                <input type="email" placeholder="Email">
+                <input type="password" placeholder="Password">
+                <button>Зарегистрироваться</button>
+            </form>
+        </div>
+
+        <div class="form-container sign-in">
+            <form>
+                <h1>Авторизация</h1>
+                <input type="email" placeholder="Email">
+                <input type="password" placeholder="Password">
+                <button>Авторизоваться</button>
+            </form>
+        </div>
+
+        <div class="toggle-container">
+            <div class="toggle">
+                <div class="toggle-panel toggle-left">
+                    <h1>С возвращением!</h1>
+                    <p>Уже зарегистрированы? Введите ваши персональные данные для авторизации</p>
+                    <button class="hidden" id="login">Авторизоваться</button>
+                </div>
+
+                <div class="toggle-panel toggle-right">
+                    <h1>Добро пожаловать!</h1>
+                    <p>Зарегистрируйтесь для доступа к полному функционалу сервиса</p>
+                    <button class="hidden" id="register">Зарегистрироваться</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const container = document.getElementById('container');
+        const registerBtn = document.getElementById('register');
+        const loginBtn = document.getElementById('login');
+
+        registerBtn.addEventListener('click', () =>{
+        container.classList.add("active");
+        });
+        loginBtn.addEventListener('click', () =>{
+        container.classList.remove("active");
+    });
+    </script>
+</body>
+</html>
