@@ -14,15 +14,61 @@
                 <a id="active" href="#">Главная</a>
                 <a href="#">История</a>
                 <a href="#">Статистика</a>
-                <a href="#">Мой баланс</a>
+                <a href="#">Кредиты и займы</a>
             </div>
         </aside>
 
         <main>
-            <header>Привет, бомж!</header>
+            <div class="adder">
+                <div class="item">
+                    <div class="item-income">
+                        <form>
+                            <p>Доход</p>
+                            <label for="category-in">Категория:</label>
+                            <select id="category-in">
+                                <option value="Зарплата">Зарплата</option>
+                                <option value="Пассивный доход">Пассивный доход</option>
+                                <option value="Подарок">Подарок</option>
+                                <option value="Нашел">Нашел</option>
+                                <option value="Прочее">Прочее</option>
+                            </select>
+                            <input type="number" min="1" name="amount" placeholder="Руб">
+                            <button>Добавить</button>
+                        </form>
+
+                        <form>
+                            <p>Добавить категорию</p>
+                            <input type="text" placeholder="Название категории">
+                            <button>Добавить</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="item">
+                    <div class="item-outcome">
+                        <form>
+                            <p>Трата</p>
+                            <label for="category-out">Категория:</label>
+                            <select id="category-out">
+                                <option value="Еда">Еда</option>
+                                <option value="Транспорт">Транспорт</option>
+                                <option value="Жилье">Жилье</option>
+                                <option value="Развлечения">Развлечения</option>
+                                <option value="Прочее">Прочее</option>
+                            </select>
+                            <input type="number" name="amount" min="1" placeholder="Руб">
+                            <button>Добавить</button>
+                        </form>
+
+                        <form>
+                            <p>Добавить категорию</p>
+                            <input type="text" placeholder="Название категории">
+                            <button>Добавить</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </main>
-
-
     </div>
 
     <script src="script.js"></script>

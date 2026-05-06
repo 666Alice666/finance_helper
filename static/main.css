@@ -44,3 +44,86 @@ a{
 .container .left-section .sidebar a#active{
     color: #3b1c13;
 }
+
+.adder{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 120px 80px 70px;
+    gap: 30px;
+}
+
+.adder p{
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: #cbc6cc;
+}
+
+.item{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 15px 30px;
+    background-color: #614e48;
+    border-radius: 30px;
+    box-shadow: 5px 5px 9px #383838;
+    height: 450px;
+    width: 500px;
+}
+
+
+.adder form{
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.adder label{
+    color: #100f0f;
+    font-size: 24px;
+    padding-top: 10px;
+}
+
+.adder input{
+    background-color: #eee;
+    border: none;
+    margin: 8px 0;
+    padding: 10px 15px;
+    font-size: 13px;
+    border-radius: 8px;
+    width: 100%;
+    outline: none;
+}
+
+.adder button{
+    background-color: #302623;
+    color: #fff;
+    font-size: 12px;
+    padding: 10px 45px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-top: 10px;
+    cursor: pointer;
+}
+
+.adder select{
+    background-color: #eee;
+    border: none;
+    margin: 8px 0;
+    padding: 10px 15px;
+    font-size: 13px;
+    border-radius: 8px;
+    width: 100%;
+    outline: none;
+}
+
+.item-outcome, .item-income{
+    display: flex;
+    flex-direction: column;
+    gap: 50px;
+}
