@@ -11,10 +11,10 @@
         <aside class="left-section">
             <h1>Финансовый помощник</h1>
             <div class="sidebar">
-                <a id="active" href="#">Главная</a>
-                <a href="#">История</a>
-                <a href="#">Статистика</a>
-                <a href="#">Кредиты и займы</a>
+                <a id="active" href="{{ url_for('main')}}">Главная</a>
+                <a href="{{ url_for('history')}}">История</a>
+                <a href="{{ url_for('statistics')}}">Статистика</a>
+                <a href="{{ url_for('debts')}}">Кредиты и займы</a>
             </div>
         </aside>
 
