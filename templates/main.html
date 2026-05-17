@@ -18,55 +18,72 @@
             </div>
         </aside>
 
-        <main>
+                <main>
             <div class="adder">
+
                 <div class="item">
                     <div class="item-income">
-                        <form>
+                        <form method="POST" action="{{ url_for('add_transaction') }}">
                             <p>Доход</p>
+                            <input type="hidden" name="type" value="income">
+
                             <label for="category-in">Категория:</label>
-                            <select id="category-in">
-                                <option value="Зарплата">Зарплата</option>
-                                <option value="Пассивный доход">Пассивный доход</option>
-                                <option value="Подарок">Подарок</option>
-                                <option value="Нашел">Нашел</option>
-                                <option value="Прочее">Прочее</option>
+                            <select name="category" id="category-in" required>
+                                {% for cat in income_cats %}
+                                    <option value="{{ cat.name }}">{{ cat.name }}</option>
+                                {% endfor %}
+                                {% if not income_cats %}
+                                    <option value="" disabled>Сначала добавьте категорию ↓</option>
+                                {% endif %}
                             </select>
-                            <input type="number" min="1" name="amount" placeholder="Руб">
-                            <button>Добавить</button>
+
+                            <input type="number" name="amount" min="1" placeholder="Руб" required>
+                            <input type="text" name="description" placeholder="Комментарий (необязательно)">
+
+                            <button type="submit">Добавить</button>
                         </form>
 
-                        <form>
+                        <form method="POST" action="{{ url_for('add_category') }}">
                             <p>Добавить категорию</p>
-                            <input type="text" placeholder="Название категории">
-                            <button>Добавить</button>
+                            <input type="hidden" name="type" value="income">
+                            <input type="text" name="name" placeholder="Название категории" required>
+                            <button type="submit">Добавить</button>
                         </form>
                     </div>
                 </div>
 
+                <!-- === ФОРМА РАСХОДА === -->
                 <div class="item">
                     <div class="item-outcome">
-                        <form>
+                        <form method="POST" action="{{ url_for('add_transaction') }}">
                             <p>Трата</p>
+                            <input type="hidden" name="type" value="expense">
+
                             <label for="category-out">Категория:</label>
-                            <select id="category-out">
-                                <option value="Еда">Еда</option>
-                                <option value="Транспорт">Транспорт</option>
-                                <option value="Жилье">Жилье</option>
-                                <option value="Развлечения">Развлечения</option>
-                                <option value="Прочее">Прочее</option>
+                            <select name="category" id="category-out" required>
+                                {% for cat in expense_cats %}
+                                    <option value="{{ cat.name }}">{{ cat.name }}</option>
+                                {% endfor %}
+                                {% if not expense_cats %}
+                                    <option value="" disabled>Сначала добавьте категорию ↓</option>
+                                {% endif %}
                             </select>
-                            <input type="number" name="amount" min="1" placeholder="Руб">
-                            <button>Добавить</button>
+
+                            <input type="number" name="amount" min="1" placeholder="Руб" required>
+                            <input type="text" name="description" placeholder="Комментарий (необязательно)">
+
+                            <button type="submit">Добавить</button>
                         </form>
 
-                        <form>
+                        <form method="POST" action="{{ url_for('add_category') }}">
                             <p>Добавить категорию</p>
-                            <input type="text" placeholder="Название категории">
-                            <button>Добавить</button>
+                            <input type="hidden" name="type" value="expense">
+                            <input type="text" name="name" placeholder="Название категории" required>
+                            <button type="submit">Добавить</button>
                         </form>
                     </div>
                 </div>
+
             </div>
         </main>
     </div>
