@@ -10,6 +10,11 @@ login_manager.init_app(app)
 login_manager.login_view = 'registr'
 
 
+@app.route("/")
+def index():
+    return redirect(url_for('registr'))
+
+
 @app.route("/registration", methods=['GET', 'POST'])
 def registr():
     if request.method == 'POST':
