@@ -128,3 +128,19 @@ a{
     flex-direction: column;
     gap: 50px;
 }
+
+main {
+    width: 100%;
+    padding: 40px;
+    overflow-y: auto;
+}
+
+.history-table {
+    width: 100%;
+    max-width: 100%;
+}
+
+.stats-grid, .charts-grid {
+    width: 100%;
+    max-width: 100%;
+}

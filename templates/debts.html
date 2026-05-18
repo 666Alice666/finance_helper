@@ -1,10 +1,56 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" type="text/css" href="{{ url_for( 'static', filename='main.css')}}">
-    <title>Student Helper</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='main.css')}}">
+    <title>Кредиты и займы</title>
+    <style>
+        .calc-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            align-items: start;
+        }
+        .calc-form, .calc-result {
+            background: #fff;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .calc-form h3, .calc-result h3 {
+            color: #614e48;
+            margin-bottom: 20px;
+        }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; color: #555; font-size: 14px; }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .calc-btn {
+            width: 100%;
+            padding: 12px;
+            background: #614e48;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        .calc-btn:hover { background: #4a3b37; }
+
+        .result-item { margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
+        .result-item:last-child { border-bottom: none; }
+        .result-label { font-size: 14px; color: #888; }
+        .result-value { font-size: 24px; font-weight: 700; color: #614e48; }
+        .highlight { color: #27ae60; }
+        .highlight-red { color: #c0392b; }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -18,11 +64,103 @@
             </div>
         </aside>
 
-        <main>
+        <main style="padding: 40px; overflow-y: auto; width: 100%;">
+            <h2 style="color: #614e48; margin-bottom: 25px;">Калькулятор кредитов и займов</h2>
 
+            <div class="calc-container">
+                <!-- === ФОРМА ВВОДА === -->
+                <div class="calc-form">
+                    <h3>Параметры</h3>
+                    <form method="POST">
+                        <div class="form-group">
+                            <label>Тип операции:</label>
+                            <select name="type" required>
+                                <option value="credit" {% if form_data.get('type') == 'credit' %}selected{% endif %}>Кредит (я плачу)</option>
+                                <option value="loan" {% if form_data.get('type') == 'loan' %}selected{% endif %}>Займ (мне платят)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Сумма (руб):</label>
+                            <input type="number" name="amount" min="100" placeholder="100000" required
+                                   value="{{ form_data.get('amount', '') }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Срок (месяцев):</label>
+                            <input type="number" name="term" min="1" placeholder="12" required
+                                   value="{{ form_data.get('term', '') }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Ставка (%):</label>
+                            <input type="number" name="rate" step="0.1" min="0.1" placeholder="15.5" required
+                                   value="{{ form_data.get('rate', '') }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Периодичность ставки:</label>
+                            <select name="rate_type">
+                                <option value="annual" {% if form_data.get('rate_type') == 'annual' %}selected{% endif %}>Годовая</option>
+                                <option value="monthly" {% if form_data.get('rate_type') == 'monthly' %}selected{% endif %}>Месячная</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="calc-btn">Рассчитать</button>
+                    </form>
+                </div>
+
+                <div class="calc-result">
+                    <h3>Результат</h3>
+
+                    {% if result %}
+                        {% if result.type == 'credit' %}
+                            <div class="result-item">
+                                <div class="result-label">Ежемесячный платеж</div>
+                                <div class="result-value highlight">{{ "%.2f"|format(result['monthly_payment']) }} ₽</div>
+                            </div>
+
+                            <div class="result-item">
+                                <div class="result-label">Итого к выплате</div>
+                                <div class="result-value">{{ "%.2f"|format(result['total_payment']) }} ₽</div>
+                            </div>
+
+                            <div class="result-item">
+                                <div class="result-label">Переплата</div>
+                                <div class="result-value highlight-red">{{ "%.2f"|format(result['overpayment']) }} ₽</div>
+                            </div>
+
+                            <p style="font-size: 12px; color: #999; margin-top: 10px;">
+                                * Расчет по схеме простых процентов
+                            </p>
+                        {% else %}
+                            <div class="result-item">
+                                <div class="result-label">Ежемесячная выплата (проценты)</div>
+                                <div class="result-value highlight">{{ "%.2f"|format(result['monthly_payment']) }} ₽</div>
+                            </div>
+
+                            <div class="result-item">
+                                <div class="result-label">Итого выплат за весь срок</div>
+                                <div class="result-value">{{ "%.2f"|format(result['total_payments']) }} ₽</div>
+                            </div>
+
+                            <div class="result-item">
+                                <div class="result-label">Итого сумма (вклад + выплаты)</div>
+                                <div class="result-value highlight">{{ "%.2f"|format(result['total_amount']) }} ₽</div>
+                            </div>
+
+                            <p style="font-size: 12px; color: #999; margin-top: 10px;">
+                                * Ваш доход от займа
+                            </p>
+                        {% endif %}
+                    {% else %}
+                        <p style="color: #888; text-align: center; margin-top: 50px;">
+                            Введите данные слева и нажмите «Рассчитать»
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
         </main>
     </div>
-
-    <script src="script.js"></script>
 </body>
 </html>

@@ -126,9 +126,60 @@ def statistics():
                            expense_values=expense_values)
 
 
-@app.route("/debts")
+@app.route("/debts", methods=['GET', 'POST'])
 def debts():
-    return render_template('debts.html')
+    from flask_login import current_user
+
+    if not current_user.is_authenticated:
+        return redirect(url_for('registr'))
+
+    result = None
+    form_data = {}
+
+    if request.method == 'POST':
+        form_data = {
+            'type': request.form.get('type', 'credit'),
+            'amount': request.form.get('amount'),
+            'term': request.form.get('term'),
+            'rate': request.form.get('rate'),
+            'rate_type': request.form.get('rate_type', 'annual')
+        }
+
+        amount = float(form_data['amount'])
+        term = int(form_data['term'])
+        rate = float(form_data['rate'])
+        rate_type = form_data['rate_type']
+        loan_type = form_data['type']
+
+        if rate_type == 'annual':
+            monthly_rate = rate / 100 / 12
+        else:
+            monthly_rate = rate / 100
+
+        if loan_type == 'credit':
+            monthly_payment = (amount / term) * (1 + monthly_rate)
+            total_payment = monthly_payment * term
+            overpayment = total_payment - amount
+
+            result = {
+                'type': 'credit',
+                'monthly_payment': monthly_payment,
+                'total_payment': total_payment,
+                'overpayment': overpayment
+            }
+        else:
+            monthly_payment = amount * monthly_rate
+            total_payments = monthly_payment * term
+            total_amount = amount + total_payments
+
+            result = {
+                'type': 'loan',
+                'monthly_payment': monthly_payment,
+                'total_payments': total_payments,
+                'total_amount': total_amount
+            }
+
+    return render_template('debts.html', result=result, form_data=form_data)
 
 
 from models import User, Category, Transaction

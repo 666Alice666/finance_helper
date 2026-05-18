@@ -50,7 +50,7 @@
             </div>
         </aside>
 
-        <main style="padding: 40px; overflow-y: auto;">
+        <main style="padding: 40px; overflow-y: auto; width: 100%; max-width: 100%; grid-column: 2 / -1;">
             <h2 style="color: #614e48; margin-bottom: 25px;">История операций</h2>
 
             {% with messages = get_flashed_messages() %}
@@ -101,6 +101,5 @@
             {% endif %}
         </main>
     </div>
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>
