@@ -1,10 +1,70 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" type="text/css" href="{{ url_for( 'static', filename='main.css')}}">
-    <title>Student Helper</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='main.css')}}">
+    <title>Статистика</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        .stat-card {
+            background: #fff;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .stat-card h3 { color: #888; font-size: 14px; margin-bottom: 10px; }
+        .stat-card .value { font-size: 28px; font-weight: 700; color: #614e48; }
+        .stat-card.income .value { color: #27ae60; }
+        .stat-card.expense .value { color: #c0392b; }
+        .stat-card.balance .value { color: #3498db; }
+
+        .comparison {
+            background: #fff;
+            padding: 25px;
+            border-radius: 20px;
+            margin-bottom: 40px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .comparison-bar {
+            height: 30px;
+            background: #eee;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 20px 0;
+            display: flex;
+        }
+        .bar-income {
+            background: #27ae60;
+            height: 100%;
+            transition: width 0.5s ease;
+        }
+        .bar-expense {
+            background: #c0392b;
+            height: 100%;
+            transition: width 0.5s ease;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+        .chart-box {
+            background: #fff;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .chart-box h3 { color: #614e48; margin-bottom: 20px; text-align: center; }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -18,11 +78,100 @@
             </div>
         </aside>
 
-        <main>
+        <main style="padding: 40px; overflow-y: auto;">
+            <h2 style="color: #614e48; margin-bottom: 25px;">Статистика</h2>
 
+            <!-- Карточки с суммами -->
+            <div class="stats-grid">
+                <div class="stat-card income">
+                    <h3>Всего доходов</h3>
+                    <div class="value">{{ "%.2f"|format(total_income) }} ₽</div>
+                </div>
+                <div class="stat-card expense">
+                    <h3>Всего расходов</h3>
+                    <div class="value">{{ "%.2f"|format(total_expense) }} ₽</div>
+                </div>
+                <div class="stat-card balance">
+                    <h3>Баланс</h3>
+                    <div class="value">{{ "%.2f"|format(balance) }} ₽</div>
+                </div>
+            </div>
+
+            <!-- Сравнение доходов и расходов -->
+            <div class="comparison">
+                <h3 style="color: #614e48;">Сравнение</h3>
+                {% if total_income > total_expense %}
+                    <p>✅ Доходов больше на <strong>{{ "%.2f"|format(difference) }} ₽</strong> ({{ income_percent }}%)</p>
+                {% elif total_expense > total_income %}
+                    <p>⚠️ Расходов больше на <strong>{{ "%.2f"|format(difference) }} ₽</strong> ({{ expense_percent }}%)</p>
+                {% else %}
+                    <p>⚖️ Доходы и расходы равны</p>
+                {% endif %}
+
+                <div class="comparison-bar">
+                    <div class="bar-income" style="width: {{ income_percent }}%;"></div>
+                    <div class="bar-expense" style="width: {{ expense_percent }}%;"></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 14px; color: #666;">
+                    <span>Доходы: {{ income_percent }}%</span>
+                    <span>Расходы: {{ expense_percent }}%</span>
+                </div>
+            </div>
+
+            <!-- Круговые диаграммы -->
+            <div class="charts-grid">
+                <div class="chart-box">
+                    <h3>Доходы по категориям</h3>
+                    <canvas id="incomeChart"></canvas>
+                </div>
+                <div class="chart-box">
+                    <h3>Расходы по категориям</h3>
+                    <canvas id="expenseChart"></canvas>
+                </div>
+            </div>
         </main>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        // Данные из Flask
+        const incomeLabels = {{ income_labels | tojson }};
+        const incomeValues = {{ income_values | tojson }};
+        const expenseLabels = {{ expense_labels | tojson }};
+        const expenseValues = {{ expense_values | tojson }};
+
+        // Диаграмма доходов
+        if (incomeLabels.length > 0) {
+            new Chart(document.getElementById('incomeChart'), {
+                type: 'pie',
+                data: {
+                    labels: incomeLabels,
+                    datasets: [{
+                        data: incomeValues,
+                        backgroundColor: ['#27ae60', '#2ecc71', '#1abc9c', '#3498db', '#9b59b6']
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+            });
+        } else {
+            document.getElementById('incomeChart').parentNode.innerHTML = '<p style="text-align:center;color:#888;">Нет данных</p>';
+        }
+
+        // Диаграмма расходов
+        if (expenseLabels.length > 0) {
+            new Chart(document.getElementById('expenseChart'), {
+                type: 'pie',
+                data: {
+                    labels: expenseLabels,
+                    datasets: [{
+                        data: expenseValues,
+                        backgroundColor: ['#e74c3c', '#c0392b', '#e67e22', '#f39c12', '#95a5a6']
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+            });
+        } else {
+            document.getElementById('expenseChart').parentNode.innerHTML = '<p style="text-align:center;color:#888;">Нет данных</p>';
+        }
+    </script>
 </body>
 </html>

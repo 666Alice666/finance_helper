@@ -68,12 +68,62 @@ def main():
 
 @app.route("/history")
 def history():
-    return render_template('history.html')
+    from flask_login import current_user
+
+    if not current_user.is_authenticated:
+        return redirect(url_for('registr'))
+
+    transactions = Transaction.query.filter_by(user_id=current_user.id) \
+        .order_by(Transaction.created_at.desc()).all()
+
+    return render_template('history.html', transactions=transactions)
 
 
 @app.route("/statistics")
 def statistics():
-    return render_template('statistics.html')
+    from flask_login import current_user
+    from sqlalchemy import func
+
+    if not current_user.is_authenticated:
+        return redirect(url_for('registr'))
+
+    total_income = db.session.query(func.sum(Transaction.amount)) \
+                       .filter_by(user_id=current_user.id, type='income').scalar() or 0
+    total_expense = db.session.query(func.sum(Transaction.amount)) \
+                        .filter_by(user_id=current_user.id, type='expense').scalar() or 0
+
+    balance = total_income - total_expense
+    difference = abs(total_income - total_expense)
+
+    total = total_income + total_expense
+    income_percent = round((total_income / total * 100), 1) if total > 0 else 0
+    expense_percent = round((total_expense / total * 100), 1) if total > 0 else 0
+
+    income_by_cat = db.session.query(Category.name, func.sum(Transaction.amount)) \
+        .join(Transaction).filter_by(user_id=current_user.id, type='income') \
+        .group_by(Category.name).all()
+
+    expense_by_cat = db.session.query(Category.name, func.sum(Transaction.amount)) \
+        .join(Transaction).filter_by(user_id=current_user.id, type='expense') \
+        .group_by(Category.name).all()
+
+    income_labels = [row[0] for row in income_by_cat]
+    income_values = [float(row[1]) for row in income_by_cat]
+
+    expense_labels = [row[0] for row in expense_by_cat]
+    expense_values = [float(row[1]) for row in expense_by_cat]
+
+    return render_template('statistics.html',
+                           total_income=total_income,
+                           total_expense=total_expense,
+                           balance=balance,
+                           difference=difference,
+                           income_percent=income_percent,
+                           expense_percent=expense_percent,
+                           income_labels=income_labels,
+                           income_values=income_values,
+                           expense_labels=expense_labels,
+                           expense_values=expense_values)
 
 
 @app.route("/debts")
@@ -89,23 +139,19 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
-# === Маршрут для добавления транзакции ===
 @app.route("/add_transaction", methods=['POST'])
 def add_transaction():
     from flask_login import current_user, login_required
     from flask import flash, redirect, url_for
 
-    # Защита: только для авторизованных
     if not current_user.is_authenticated:
         return redirect(url_for('registr'))
 
-    # Получаем данные из формы
-    trans_type = request.form.get('type')  # 'income' или 'expense'
+    trans_type = request.form.get('type')
     category_name = request.form.get('category')
     amount = request.form.get('amount')
     description = request.form.get('description', '')
 
-    # Ищем или создаём категорию
     category = Category.query.filter_by(
         user_id=current_user.id,
         name=category_name,
@@ -121,7 +167,6 @@ def add_transaction():
         db.session.add(category)
         db.session.commit()
 
-    # Создаём транзакцию
     new_transaction = Transaction(
         user_id=current_user.id,
         category_id=category.id,
@@ -167,6 +212,28 @@ def add_category():
         flash('Категория добавлена!')
 
     return redirect(url_for('main'))
+
+
+@app.route("/delete_transaction/<int:transaction_id>", methods=['POST'])
+def delete_transaction(transaction_id):
+    from flask_login import current_user
+
+    if not current_user.is_authenticated:
+        return redirect(url_for('registr'))
+
+    transaction = Transaction.query.filter_by(
+        id=transaction_id,
+        user_id=current_user.id
+    ).first()
+
+    if transaction:
+        db.session.delete(transaction)
+        db.session.commit()
+        flash('Запись удалена')
+    else:
+        flash('Ошибка: запись не найдена или нет прав')
+
+    return redirect(url_for('history'))
 
 
 if __name__ == '__main__':
