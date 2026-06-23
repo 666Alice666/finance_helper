@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="stylesheet" type="text/css" href="{{ url_for( 'static', filename='main.css')}}">
     <title>Student Helper</title>
 </head>
@@ -10,11 +11,16 @@
     <div class="container">
         <aside class="left-section">
             <h1>Финансовый помощник</h1>
+            <p style="color: #3b1c13;">{{ user_name }} ({{ user_role }})</p>
             <div class="sidebar">
                 <a id="active" href="{{ url_for('main')}}">Главная</a>
                 <a href="{{ url_for('history')}}">История</a>
                 <a href="{{ url_for('statistics')}}">Статистика</a>
                 <a href="{{ url_for('debts')}}">Кредиты и займы</a>
+                <form method="POST" action="{{ url_for('logout') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit">Выйти</button>
+                </form>
             </div>
         </aside>
 
@@ -24,6 +30,7 @@
                 <div class="item">
                     <div class="item-income">
                         <form method="POST" action="{{ url_for('add_transaction') }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <p>Доход</p>
                             <input type="hidden" name="type" value="income">
 
@@ -44,6 +51,7 @@
                         </form>
 
                         <form method="POST" action="{{ url_for('add_category') }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <p>Добавить категорию</p>
                             <input type="hidden" name="type" value="income">
                             <input type="text" name="name" placeholder="Название категории" required>
@@ -56,6 +64,7 @@
                 <div class="item">
                     <div class="item-outcome">
                         <form method="POST" action="{{ url_for('add_transaction') }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <p>Трата</p>
                             <input type="hidden" name="type" value="expense">
 
@@ -76,6 +85,7 @@
                         </form>
 
                         <form method="POST" action="{{ url_for('add_category') }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <p>Добавить категорию</p>
                             <input type="hidden" name="type" value="expense">
                             <input type="text" name="name" placeholder="Название категории" required>
@@ -85,9 +95,82 @@
                 </div>
 
             </div>
+            <section class="category-manager">
+                <h2>Управление категориями</h2>
+                <div class="category-columns">
+                    <div>
+                        <h3>Доходы</h3>
+                        {% for cat in income_cats %}
+                            <form class="inline-edit category-update-form" data-update-url="{{ url_for('api_category_detail', category_id=cat.id) }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <input type="hidden" name="type" value="income">
+                                <input type="text" name="name" value="{{ cat.name }}" required>
+                                <button type="submit">Сохранить</button>
+                                <button type="button" class="delete-btn" data-delete-url="{{ url_for('delete_category', category_id=cat.id) }}">Удалить</button>
+                            </form>
+                        {% else %}
+                            <p>Категорий доходов пока нет.</p>
+                        {% endfor %}
+                    </div>
+                    <div>
+                        <h3>Расходы</h3>
+                        {% for cat in expense_cats %}
+                            <form class="inline-edit category-update-form" data-update-url="{{ url_for('api_category_detail', category_id=cat.id) }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <input type="hidden" name="type" value="expense">
+                                <input type="text" name="name" value="{{ cat.name }}" required>
+                                <button type="submit">Сохранить</button>
+                                <button type="button" class="delete-btn" data-delete-url="{{ url_for('delete_category', category_id=cat.id) }}">Удалить</button>
+                            </form>
+                        {% else %}
+                            <p>Категорий расходов пока нет.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </section>
         </main>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
+        document.querySelectorAll('.category-update-form').forEach((form) => {
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                const response = await fetch(form.dataset.updateUrl, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify({
+                        name: form.elements.name.value,
+                        type: form.elements.type.value
+                    })
+                });
+
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    alert('Не удалось обновить категорию');
+                }
+            });
+        });
+
+        document.querySelectorAll('.delete-btn').forEach((button) => {
+            button.addEventListener('click', async () => {
+                const response = await fetch(button.dataset.deleteUrl, {
+                    method: 'DELETE',
+                    headers: { 'X-CSRFToken': csrfToken }
+                });
+
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    alert('Не удалось удалить запись');
+                }
+            });
+        });
+    </script>
 </body>
 </html>

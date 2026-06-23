@@ -46,6 +46,15 @@ a{
     color: #3b1c13;
 }
 
+.container .left-section .sidebar button{
+    background-color: #302623;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 16px;
+    cursor: pointer;
+}
+
 .adder{
     display: flex;
     flex-direction: row;
@@ -143,4 +152,42 @@ main {
 .stats-grid, .charts-grid {
     width: 100%;
     max-width: 100%;
+}
+
+.category-manager {
+    padding: 0 80px 60px;
+}
+
+.category-manager h2,
+.category-manager h3 {
+    color: #614e48;
+    margin-bottom: 15px;
+}
+
+.category-columns {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 30px;
+}
+
+.inline-edit {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.inline-edit input,
+.inline-edit button,
+.history-table input,
+.history-table select {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 6px;
+}
+
+.inline-edit button {
+    background: #614e48;
+    color: #fff;
+    border: none;
+    cursor: pointer;
 }

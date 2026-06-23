@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='main.css')}}">
     <title>История операций</title>
     <style>
@@ -76,19 +77,32 @@
                     <tr>
                         <td>{{ t.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
                         <td>
-                            {% if t.type == 'income' %}
-                                <span class="income">Доход</span>
-                            {% else %}
-                                <span class="expense">Расход</span>
-                            {% endif %}
-                        </td>
-                        <td>{{ t.category.name if t.category else 'Без категории' }}</td>
-                        <td>{{ "%.2f"|format(t.amount) }} ₽</td>
-                        <td>{{ t.description or '—' }}</td>
-                        <td>
-                            <form method="POST" action="{{ url_for('delete_transaction', transaction_id=t.id) }}" style="margin: 0;">
-                                <button type="submit" style="background: #e74c3c; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: 0.2s;" onmouseover="this.style.background='#c0392b'" onmouseout="this.style.background='#e74c3c'">🗑️ Удалить</button>
+                            <form id="edit-transaction-{{ t.id }}" class="transaction-update-form" data-update-url="{{ url_for('api_transaction_detail', transaction_id=t.id) }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <select name="type" required>
+                                    <option value="income" {% if t.type == 'income' %}selected{% endif %}>Доход</option>
+                                    <option value="expense" {% if t.type == 'expense' %}selected{% endif %}>Расход</option>
+                                </select>
                             </form>
+                        </td>
+                        <td>
+                            <select name="category_id" form="edit-transaction-{{ t.id }}" required>
+                                {% for cat in income_cats + expense_cats %}
+                                    <option value="{{ cat.id }}" {% if t.category_id == cat.id %}selected{% endif %}>
+                                        {{ cat.name }} ({{ 'доход' if cat.type == 'income' else 'расход' }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td>
+                            <input type="number" name="amount" min="1" step="0.01" value="{{ t.amount }}" form="edit-transaction-{{ t.id }}" required>
+                        </td>
+                        <td>
+                            <input type="text" name="description" value="{{ t.description or '' }}" form="edit-transaction-{{ t.id }}">
+                        </td>
+                        <td>
+                            <button type="submit" form="edit-transaction-{{ t.id }}" style="background: #614e48; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;">Сохранить</button>
+                            <button type="button" class="delete-btn" data-delete-url="{{ url_for('delete_transaction', transaction_id=t.id) }}" style="background: #e74c3c; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: 0.2s;" onmouseover="this.style.background='#c0392b'" onmouseout="this.style.background='#e74c3c'">Удалить</button>
                         </td>
                     </tr>
                     {% endfor %}
@@ -101,6 +115,48 @@
             {% endif %}
         </main>
     </div>
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script>
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
+        document.querySelectorAll('.transaction-update-form').forEach((form) => {
+            form.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                const response = await fetch(form.dataset.updateUrl, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify({
+                        type: form.elements.type.value,
+                        category_id: Number(form.elements.category_id.value),
+                        amount: form.elements.amount.value,
+                        description: form.elements.description.value
+                    })
+                });
+
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    alert('Не удалось обновить операцию');
+                }
+            });
+        });
+
+        document.querySelectorAll('.delete-btn').forEach((button) => {
+            button.addEventListener('click', async () => {
+                const response = await fetch(button.dataset.deleteUrl, {
+                    method: 'DELETE',
+                    headers: { 'X-CSRFToken': csrfToken }
+                });
+
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    alert('Не удалось удалить операцию');
+                }
+            });
+        });
+    </script>
 </body>
 </html>
