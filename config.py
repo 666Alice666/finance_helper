@@ -13,7 +13,7 @@ def build_database_url():
     db_password = os.getenv('POSTGRES_PASSWORD')
     if not db_password:
         raise RuntimeError(
-            'POSTGRES_PASSWORD is required. Set it in env.txt or provide DATABASE_URL.'
+            'POSTGRES_PASSWORD is required. Set it in .env or provide DATABASE_URL.'
         )
 
     db_user = os.getenv('POSTGRES_USER', 'finance_user')
