@@ -1,6 +1,7 @@
 .idea/
 .hypothesis/
 .pytest_cache/
+instance/
 __pycache__/
 *.pyc
 .venv/
